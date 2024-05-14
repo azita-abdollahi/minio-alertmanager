@@ -52,6 +52,24 @@ services:
       connet:
         ipv4_address: 192.168.22.15
 
+  grafana:
+    image: grafana/grafana:10.1.9
+    container_name: grafanaa
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./config/grafana:/etc/grafana/provisioning/
+      - grafana_data:/var/lib/grafana
+    networks:
+      connet:
+        ipv4_address: 192.168.22.16
+
 networks:
   connet:
     external: true
