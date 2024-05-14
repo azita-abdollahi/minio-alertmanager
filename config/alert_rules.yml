@@ -1,0 +1,77 @@
+groups:
+- name: minio_alerts
+  rules:
+  - alert: Instance Down
+    expr: up == 0
+    for: 5m
+    labels:
+        severity: critical
+    annotations:
+        title: "Instance {{ $labels.instance }} down"
+        description: "{{ $labels.instance }} of job {{ $labels.job }} has been down in the last 5 minutes."
+        resolved_description: '{{ $labels.instance }} up now'
+        priority: "9"
+
+  - alert: High Minio Requests
+    expr: minio_s3_requests_total > 100000
+    for: 5m
+    labels:
+      severity: warn
+    annotations:
+      title: "Instance {{ $labels.instance }} High MinIO usage detected"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has too MinIO HTTP requests in the last 5 minutes."
+      priority: "5"
+
+  - alert: High Minio Objects
+    expr: minio_bucket_usage_object_total > 100000000
+    for: 5m
+    labels:
+      severity: warn
+    annotations:
+      title: "Instance {{ $labels.instance }} High MinIO Objects count detected"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has too MinIO objects in the last 5 minutes."
+      priority: "5"
+
+  - alert: High Minio Memory Usage
+    expr: ((1-(minio_node_mem_available / minio_node_mem_total)) *100) > 80
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      title: 'Instance {{ $labels.instance }} memory usage alert'
+      description: '{{ $labels.instance }} of job {{ $labels.job }} has utilized {{ $value | printf "%.2f"  }} % of memory in the last 5 minutes.'
+      resolved_description: '{{ $labels.instance }} memory usage is normal now'
+      priority: "9"
+
+  - alert: High Minio CPU Usage
+    expr:  100 - minio_node_cpu_avg_idle > 80
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      title: 'Instance {{ $labels.instance }} cpu usage alert'
+      description: '{{ $labels.instance }} of job {{ $labels.job }} has utilized {{ $value | printf "%.2f"  }} % of cpu in the last 5 minutes.'
+      resolved_description: '{{ $labels.instance }} cpu usage is normal now'
+      priority: "9"
+  
+  - alert: Minio Disk Offline
+    expr: minio_node_drive_offline_total != 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      title: 'Instance {{ $labels.instance }} disk Offline alert'
+      description: '{{ $labels.instance }} of job {{ $labels.job }} is Offline in the last 5 minutes.'
+      resolved_description: '{{ $labels.instance }} disk is online now'
+      priority: "9"
+
+  - alert: High Minio Disk Usage
+    expr: minio_node_drive_free_bytes < 100000000
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+      title: "Instance {{ $labels.instance }} Free space threshold reached"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has low free storage in the last 10 minutes."
+      resolved_description: '{{ $labels.instance }} cpu usage is normal now'
+      priority: "9"

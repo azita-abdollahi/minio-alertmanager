@@ -1,0 +1,67 @@
+version: '3'
+services:
+  prometheus:
+    image: prom/prometheus:v2.51.1
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+      - ./config/alertmanager.yml:/etc/prometheus/alertmanager.yml
+      - ./config/alert_rules.yml:/etc/prometheus/alert_rules.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    networks:
+      connet:
+        ipv4_address: 192.168.22.13
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    volumes:
+      - ./config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    ports:
+      - 9093:9093
+    networks:
+      connet:
+        ipv4_address: 192.168.22.14
+
+  alert-producer: 
+    image: alert-producer:v1
+    container_name: alert-producer
+    build:  
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8435:8435
+    restart: unless-stopped
+    environment:
+      - GOTIFY_URL=http://GOTIFY_URL/
+      - GOTIFY_DEFAULT_PRIORITY=5
+      - GOTIFY_TOKEN=test 
+      - PORT=8435
+    networks:
+      connet:
+        ipv4_address: 192.168.22.15
+
+networks:
+  connet:
+    external: true
+
+volumes:
+  minio_data: 
+    driver: local
+  prometheus_data: 
+    driver: local
+  grafana_data:
+    driver: local
+
+  
